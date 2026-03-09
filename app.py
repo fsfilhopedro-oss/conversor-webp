@@ -6,7 +6,7 @@ import zipfile
 
 app = Flask(__name__)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+ALLOWED_EXTENSIONS = {'bmp', 'gif', 'pgn', 'png', 'jpg', 'jpeg', 'tif', 'webp'}
 
 def compress_image(image, target_size_kb=30, max_fallback_kb=60):
     img_io = io.BytesIO()
