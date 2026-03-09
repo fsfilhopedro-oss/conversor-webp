@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversor WebP</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #eef2f3; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 400px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        button { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 15px; }
+        
+        #progress-container { display: none; width: 100%; background-color: #ddd; border-radius: 10px; margin-top: 20px; height: 25px; position: relative; }
+        #progress-bar { width: 0%; height: 100%; background-color: #28a745; border-radius: 10px; transition: width 0.3s; }
+        #percent-text { position: absolute; width: 100%; top: 3px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Conversor em Lote</h2>
+        <form id="uploadForm" method="post" enctype="multipart/form-data" onsubmit="startProgress()">
+            <input type="file" name="files" accept="image/*" multiple required>
+            <br>
+            <button type="submit" id="btnConverter">Converter e Baixar .ZIP</button>
+        </form>
+
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+            <div id="percent-text">0%</div>
+        </div>
+        
+        <button id="btnReset" onclick="location.reload()" style="display:none; background: #6c757d;">Limpar e Voltar</button>
+    </div>
+
+    <script>
+        function startProgress() {
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('btnConverter').style.display = 'none'; // Esconde o botão original
+            
+            let percent = 0;
+            let bar = document.getElementById('progress-bar');
+            let text = document.getElementById('percent-text');
+            let resetBtn = document.getElementById('btnReset');
+
+            let interval = setInterval(function() {
+                if (percent < 95) {
+                    percent += 1;
+                    bar.style.width = percent + '%';
+                    text.innerText = percent + '%';
+                } else {
+                    clearInterval(interval);
+                    text.innerText = 'Concluído! Aguarde o download...';
+                    resetBtn.style.display = 'inline-block'; // Mostra botão para resetar
+                }
+            }, 100); // Atualiza a cada 0.1 segundo
+        }
+    </script>
+</body>
+</html>
