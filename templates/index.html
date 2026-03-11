@@ -2,26 +2,162 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Conversor WebP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor WebP - Biblioteca IPEN</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #eef2f3; }
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 400px; }
-        h2 { color: #333; margin-bottom: 20px; }
-        button { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 15px; }
-        
-        #progress-container { display: none; width: 100%; background-color: #ddd; border-radius: 10px; margin-top: 20px; height: 25px; position: relative; }
-        #progress-bar { width: 0%; height: 100%; background-color: #28a745; border-radius: 10px; transition: width 0.3s; }
-        #percent-text { position: absolute; width: 100%; top: 3px; font-weight: bold; color: #333; }
+        :root {
+            --azul-ipen-dark: #003399; /* Azul institucional */
+            --azul-ipen-light: #00AEEF; /* Azul detalhe */
+            --cinza-fundo: #f4f7f9;
+            --texto: #2d3748;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+            background-color: var(--cinza-fundo); 
+        }
+
+        .card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+            width: 100%;
+            max-width: 450px; 
+            border-top: 6px solid var(--azul-ipen-dark);
+        }
+
+        .logo-placeholder {
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: var(--azul-ipen-dark);
+            font-size: 24px;
+            letter-spacing: -1px;
+        }
+
+        /* Se tiver o arquivo do logo, use a tag img abaixo */
+        .logo-ipen {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h2 { color: var(--azul-ipen-dark); margin: 0 0 5px 0; font-size: 22px; }
+        p.subtitle { color: #718096; margin-bottom: 30px; font-size: 14px; }
+
+        /* Área de Upload */
+        .drop-zone {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--azul-ipen-light);
+            background: #edf2f7;
+        }
+
+        .drop-zone__text {
+            color: #4a5568;
+            font-size: 15px;
+        }
+
+        .drop-zone__icon {
+            font-size: 40px;
+            color: #a0aec0;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Botões */
+        button { 
+            background: var(--azul-ipen-dark); 
+            color: white; 
+            border: none; 
+            padding: 14px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: #002673; }
+        button:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+        /* Progresso */
+        #progress-container { 
+            display: none; 
+            width: 100%; 
+            background-color: #edf2f7; 
+            border-radius: 50px; 
+            margin-top: 20px; 
+            height: 24px; 
+            position: relative; 
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #progress-bar { 
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--azul-ipen-dark), var(--azul-ipen-light)); 
+            transition: width 0.4s ease; 
+        }
+
+        #percent-text { 
+            position: absolute; 
+            width: 100%; 
+            top: 4px; 
+            font-size: 12px;
+            font-weight: bold; 
+            color: var(--texto); 
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #a0aec0;
+            border-top: 1px solid #edf2f7;
+            padding-top: 15px;
+        }
+
+        #btnReset {
+            background: #718096;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <h2>Conversor em Lote</h2>
-        <form id="uploadForm" method="post" enctype="multipart/form-data" onsubmit="startProgress()">
-            <input type="file" name="files" accept="image/*" multiple required>
-            <br>
+        <img src="logo_ipen.png" alt="IPEN" class="logo-ipen" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block'">
+        <div id="text-logo" class="logo-placeholder" style="display:none;">IPEN</div>
+
+        <h2>Conversor de Imagens</h2>
+        <p class="subtitle">Ferramenta Exclusiva da Biblioteca IPEN</p>
+
+        <form id="uploadForm" method="post" enctype="multipart/form-data" onsubmit="return startProgress()">
+            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                <span class="drop-zone__icon">📁</span>
+                <span class="drop-zone__text" id="fileLabel">Clique ou arraste as imagens aqui</span>
+                <input type="file" name="files" id="fileInput" accept="image/*" multiple required style="display: none;" onchange="updateFileName()">
+            </div>
+            
             <button type="submit" id="btnConverter">Converter e Baixar .ZIP</button>
         </form>
 
@@ -30,30 +166,56 @@
             <div id="percent-text">0%</div>
         </div>
         
-        <button id="btnReset" onclick="location.reload()" style="display:none; background: #6c757d;">Limpar e Voltar</button>
+        <button id="btnReset" onclick="location.reload()">Processar Novos Arquivos</button>
+
+        <div class="footer">
+            INSTITUTO DE PESQUISAS ENERGÉTICAS E NUCLEARES <br>
+            Comissão Nacional de Energia Nuclear (CNEN)
+        </div>
     </div>
 
     <script>
+        function updateFileName() {
+            const input = document.getElementById('fileInput');
+            const label = document.getElementById('fileLabel');
+            const files = input.files;
+            
+            if (files.length > 0) {
+                label.innerHTML = files.length > 1 
+                    ? `<strong>${files.length} arquivos selecionados</strong>` 
+                    : `<strong>${files[0].name}</strong>`;
+                label.style.color = "var(--azul-ipen-dark)";
+            }
+        }
+
         function startProgress() {
+            // Validação simples
+            const input = document.getElementById('fileInput');
+            if (input.files.length === 0) return false;
+
             document.getElementById('progress-container').style.display = 'block';
             document.getElementById('btnConverter').style.display = 'none';
+            document.querySelector('.drop-zone').style.pointerEvents = 'none';
+            document.querySelector('.drop-zone').style.opacity = '0.6';
             
             let percent = 0;
-            let bar = document.getElementById('progress-bar');
-            let text = document.getElementById('percent-text');
-            let resetBtn = document.getElementById('btnReset');
+            const bar = document.getElementById('progress-bar');
+            const text = document.getElementById('percent-text');
+            const resetBtn = document.getElementById('btnReset');
 
+            // Simulação de progresso (visto que o upload real depende do backend)
             let interval = setInterval(function() {
-                if (percent < 95) {
-                    percent += 1;
+                if (percent < 90) {
+                    percent += Math.floor(Math.random() * 10) + 1;
+                    if (percent > 90) percent = 90;
                     bar.style.width = percent + '%';
-                    text.innerText = percent + '%';
-                } else {
-                    clearInterval(interval);
-                    text.innerText = 'Concluído! Aguarde o download...';
-                    resetBtn.style.display = 'inline-block';
+                    text.innerText = 'Processando... ' + percent + '%';
                 }
-            }, 100);
+            }, 200);
+
+            // Nota: O formulário continuará o envio para o Flask/Backend normalmente.
+            // Para uma aplicação real com download de arquivo, o 'reset' deve aparecer após a resposta.
+            return true; 
         }
     </script>
 </body>
